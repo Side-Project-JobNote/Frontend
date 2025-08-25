@@ -3,14 +3,21 @@
 import { useSelectedLayoutSegments } from "next/navigation";
 import WarningCircleIcon from "@/assets/WarningCircle.svg";
 import MessageBubble from "./messageBubble";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function PageTitle() {
-  const [isActivateMessage, setIsActivateMessage] = useState(false);
   const segments = useSelectedLayoutSegments();
 
+  const [currentSegment, setCurrentSegment] = useState(segments[0]);
+  const [isActivateMessage, setIsActivateMessage] = useState(false);
+
+  useEffect(() => {
+    setCurrentSegment(segments[0]);
+  }, [segments]);
+
+  // 페이지 타이틀
   const title = () => {
-    switch (segments[0]) {
+    switch (currentSegment) {
       case "applications":
         return "지원 현황";
       case "documents":
@@ -19,26 +26,31 @@ export default function PageTitle() {
         return "일정";
       case "dashboard":
         return "Dashboard";
+      default:
+        return "";
     }
   };
 
+  // 마우스 오버 메시지
   const message = () => {
-    switch (segments[0]) {
-      case "/applications":
+    switch (currentSegment) {
+      case "applications":
         return "지원 현황";
-      case "/documents":
+      case "documents":
         return "문서를 업로드하고, 버전별로 체계적으로 관리하세요";
-      case "/schedule":
+      case "schedule":
         return "일정";
       default:
         return "";
     }
   };
+
   return (
     <div className="bg-[#F5F5F5] w-full h-36 relative">
       <div className="absolute bottom-6 left-80 flex flex-row items-center gap-2">
         <h1 className="font-medium text-4xl">{title()}</h1>
-        {segments[0] !== "/dashboard" && (
+
+        {currentSegment !== "dashboard" && (
           <div className="relative flex items-center">
             <div
               onMouseEnter={() => {

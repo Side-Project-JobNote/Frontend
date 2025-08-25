@@ -3,17 +3,12 @@ import BriefCase from "@/assets/Briefcase.svg";
 import CalendarBlank from "@/assets/CalendarBlank.svg";
 import ClipboardText from "@/assets/ClipboardText.svg";
 import House from "@/assets/House.svg";
+import UserInfo from "./userInfo";
 
 export default function SideNavigation() {
   return (
     <div className="fixed top-32 left-11 border border-[#FFE8CC] rounded-lg px-10 py-8 flex flex-col items-center bg-white">
-      <div
-        id="personal-infomation"
-        className="flex flex-col items-center gap-6"
-      >
-        <div className="bg-[#BFBFBF] rounded-full size-16"></div>
-        <span className="text-2xl font-medium">이름</span>
-      </div>
+      <UserInfo />
 
       <button className="mt-4 text-main border border-[#FF9016] px-4 py-1">
         개인정보수정

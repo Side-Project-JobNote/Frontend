@@ -49,18 +49,18 @@ export default function LoginForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      login(email, password);
 
-      router.replace("/dashboard");
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>; // AxiosError 타입 지정
-    const message = error.response?.data?.message;
-
-      if (message === "아이디 또는 비밀번호가 잘못되었습니다") {
-        alert("아이디 또는 비밀번호가 잘못되었습니다.");
-      }
-    }
+    login(email, password)
+      .then(() => {
+        router.replace("/dashboard");
+      })
+      .catch((err) => {
+        const error = err as AxiosError<{ message: string }>; // AxiosError 타입 지정
+        const message = error.response?.data?.message;
+        if (message === "아이디 또는 비밀번호가 잘못되었습니다.") {
+          alert("아이디 또는 비밀번호가 잘못되었습니다.");
+        }
+      });
   };
 
   return (
@@ -139,3 +139,4 @@ export default function LoginForm() {
     </form>
   );
 }
+
