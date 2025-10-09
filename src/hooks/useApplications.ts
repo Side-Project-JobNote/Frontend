@@ -52,6 +52,7 @@ export const useUpdateApplication = () => {
     mutationFn: updateApplication,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };
