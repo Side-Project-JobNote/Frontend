@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jobnote: 취업을 위한 올인원 대시보드
+<br />
 
-## Getting Started
+## 서비스 설명
+- Jobnote는 복잡한 취업 준비 과정을 한곳에서 체계적으로 관리할 수 있도록 도와주는 웹 애플리케이션입니다. 
+- 여러 개의 이력서 버전, 지원한 채용 공고, 일정들을 한 곳에서 관리할 수 있습니다.
 
-First, run the development server:
+<br/>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 주요 기능
+1. **문서 관리**:
+- 이력서, 자기소개서, 포트폴리오 등 다양한 문서를 업로드하고 관리하세요.
+- 문서별 버전 관리를 통해 어떤 회사에 어떤 버전의 서류를 제출했는지 쉽게 추적할 수 있습니다.
+
+2. **지원 현황 대시보드:**
+- 지원한 회사들의 상태(지원 완료, 서류 합격, 최종 합격 등)를 한눈에 파악할 수 있는 보드 스타일의 대시보드를 제공합니다.
+- 회사별 지원 현황과 제출 문서를 손쉽게 연결하고 관리하세요.
+
+3. **스마트 일정 관리:**
+- 서류 마감일, 면접 일정 등 중요한 스케줄을 캘린더에 등록하고 놓치지 않도록 관리하세요.
+- 다가오는 일정을 D-Day 형식으로 알려주어 중요한 일정을 잊지 않도록 도와줍니다.
+
+4. **간편하고 안전한 인증:**
+- 이메일 기반의 회원가입 및 로그인 기능을 제공합니다.
+- Google, Naver, Kakao를 통한 소셜 로그인으로 더욱 빠르고 간편하게 서비스를 시작할 수 있습니다.
+
+<br/>
+
+## 기술 스택
+- 프레임워크: Next.js (App Router)
+
+- 언어: TypeScript
+
+- 상태 관리: Zustand, React Query
+
+- 스타일링: Tailwind CSS
+
+- 데이터 페칭: Axios
+
+- 배포: Vercel
+
+<br/>
+
+## 프로젝트 구조
+## 📂 프로젝트 구조
+
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+├── public/                # 정적 에셋 (이미지, 폰트 등)
+├── src/
+│   ├── app/               # Next.js App Router 기반 라우팅 및 페이지
+│   │   ├── (afterLogin)/  # 로그인 후 접근 가능한 페이지 그룹
+│   │   ├── api/           # API Routes (백엔드 프록시)
+│   │   ├── login/         # 로그인 관련 페이지
+│   │   └── layout.tsx     # 전역 레이아웃
+│   ├── assets/            # SVG 아이콘
+│   ├── hooks/             # React Query 커스텀 훅
+│   ├── lib/               # API 호출 및 유틸리티 함수
+│   ├── store/             # Zustand 상태 관리 스토어
+│   └── types/             # TypeScript 타입 정의
+├── .github/               # GitHub Actions 워크플로우
+├── next.config.ts         # Next.js 설정
+└── package.json           # 프로젝트 의존성 및 스크립트
+```
