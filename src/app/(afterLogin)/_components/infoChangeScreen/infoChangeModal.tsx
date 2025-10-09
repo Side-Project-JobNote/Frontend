@@ -1,14 +1,17 @@
+"use client";
+
 import CloseIcon from "@/assets/Close.svg";
 import SelectSection from "./selectSection";
+import { useModalStore } from "@/store/modalStore";
 
-export default function InfoChangeModal({
-  setIsModal,
-}: {
-  isModal: boolean;
-  setIsModal: (value: boolean) => void;
-}) {
+export default function InfoChangeModal() {
+  const { isModal, setIsModal } = useModalStore();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
+        isModal ? "block" : "hidden"
+      }`}
+    >
       <div
         onClick={() => {
           setIsModal(false);
