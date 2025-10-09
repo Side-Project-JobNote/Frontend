@@ -7,7 +7,10 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="fixed flex flex-col justify-between top-0 left-0 w-full h-full bg-[linear-gradient(243.18deg,#FF9016_0%,#FFFFFF_59.99%,#FFE8CC_100%)]">
-      <Link href="/login" className="absolute right-[3.25rem] top-[2.563rem] text-2xl text-white">
+      <Link
+        href="/login"
+        className="absolute right-[3.25rem] top-[2.563rem] text-2xl text-white"
+      >
         시작하기
       </Link>
       <div>
@@ -24,6 +27,7 @@ export default function Home() {
 
       <div className="relative w-[63.188rem] aspect-[16/9] mx-auto">
         <Image
+          priority
           src="/splash1.png"
           alt="splash"
           fill

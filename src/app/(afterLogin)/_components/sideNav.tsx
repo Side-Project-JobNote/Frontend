@@ -7,12 +7,10 @@ import ClipboardText from "@/assets/ClipboardText.svg";
 import House from "@/assets/House.svg";
 import UserInfo from "./userInfo";
 import { useSelectedLayoutSegments } from "next/navigation";
+import { useModalStore } from "@/store/modalStore";
 
-export default function SideNavigation({
-  setIsModal,
-}: {
-  setIsModal: (value: boolean) => void;
-}) {
+export default function SideNavigation() {
+  const { setIsModal } = useModalStore();
   const segments = useSelectedLayoutSegments();
   const pathname = segments[0];
 
