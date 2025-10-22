@@ -53,6 +53,7 @@ export const useUpdateApplication = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };

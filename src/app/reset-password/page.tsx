@@ -1,4 +1,3 @@
-"use client";
 import { Suspense } from "react";
 import ResetPasswordForm from "./_components/resetPasswordForm";
 import LoadingSpinner from "../_components/loadingSpinner";
