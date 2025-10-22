@@ -34,6 +34,7 @@ export const useCreateDocument = () => {
     onSuccess: () => {
       // 성공 시 문서 목록 캐시 무효화 → 자동 갱신
       queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
@@ -46,6 +47,7 @@ export const useUpdateDocument = () => {
       uploadDocument(id, fileInfo),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["documents", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
@@ -58,6 +60,7 @@ export const useDeleteDocument = () => {
     onSuccess: () => {
       // 삭제 후 목록 갱신
       queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
