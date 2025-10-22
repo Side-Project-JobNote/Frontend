@@ -1,97 +1,17 @@
 "use client";
 
-import { useFetchAllApplications } from "@/hooks/useApplications";
-import { useEffect, useState } from "react";
-import { CompanyApplication, Schedule } from "@/type/applicationType";
-import { useSchedule } from "@/hooks/useSchedule";
+import { Schedule } from "@/type/applicationType";
 import CalendarIcon from "@/assets/CalendarCheck.svg";
 import LoadingSpinner from "@/app/_components/loadingSpinner";
+import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
-  const [applicationStatus, setApplicationStatus] = useState<{
-    APPLIED: number;
-    DOCUMENT_PASSED: number;
-    FINAL_PASSED: number;
-    REJECTED: number;
-  }>({
-    APPLIED: 0,
-    DOCUMENT_PASSED: 0,
-    FINAL_PASSED: 0,
-    REJECTED: 0,
-  });
+  const { data, isLoading, isError } = useDashboard();
+  const applicationStatus = data?.applicationStatusCounts;
+  const scheduleData = data?.scheduleData;
 
-  function formatDateToApiString(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-  }
-
-  const startDate = formatDateToApiString(new Date());
-  const endDate = formatDateToApiString(
-    new Date(new Date().setDate(new Date().getDate() + 7))
-  );
-
-  function getDDay(dateTime: string) {
-    const today = new Date();
-    const targetDate = new Date(dateTime);
-
-
-    const todayOnly = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-    const targetOnly = new Date(
-      targetDate.getFullYear(),
-      targetDate.getMonth(),
-      targetDate.getDate()
-    );
-
-    const diffTime = targetOnly.getTime() - todayOnly.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays > 0) return `D-${diffDays}`;
-    else if (diffDays === 0) return `D-Day`;
-    else return `D+${Math.abs(diffDays)}`;
-  }
-
-  const { data, isLoading } = useFetchAllApplications(0, "");
-  const { data: scheduleData, isLoading: scheduleLoading } = useSchedule(
-    startDate,
-    endDate
-  );
-
-  const applications = data?.data.content as Array<CompanyApplication>;
-
-  const statusCount = () => {
-    if (!applications) return;
-
-    const counts = {
-      APPLIED: 0,
-      DOCUMENT_PASSED: 0,
-      FINAL_PASSED: 0,
-      REJECTED: 0,
-    };
-
-    applications.forEach((app) => {
-      if (app.status === "APPLIED") counts.APPLIED += 1;
-      else if (app.status === "DOCUMENT_PASSED") counts.DOCUMENT_PASSED += 1;
-      else if (app.status === "FINAL_PASSED") counts.FINAL_PASSED += 1;
-      else if (app.status === "REJECTED") counts.REJECTED += 1;
-    });
-
-    setApplicationStatus(counts);
-  };
-
-  useEffect(() => {
-    statusCount();
-  }, [applications]);
-
-  if (isLoading || scheduleLoading) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
+  if (isError) return <span className="text-red-500">오류가 발생하였습니다. 잠시 후 시도해주세요.</span>;
 
   const box_style = "w-60 border rounded-sm px-9 py-5 flex flex-col gap-4";
   return (
@@ -151,7 +71,7 @@ export default function DashboardPage() {
         <h2 className="text-3xl font-semibold mb-6">다가오는 일정</h2>
 
         <div className="flex flex-col gap-4">
-          {scheduleData?.data.content.map((schedule: Schedule) => (
+          {scheduleData?.map((schedule: Schedule & { dday: string }) => (
             <div
               key={schedule.id}
               className="w-full border border-[#E7E7E7] rounded-lg px-5 py-3.5 text-xl font-medium"
@@ -160,7 +80,7 @@ export default function DashboardPage() {
                 <CalendarIcon />
                 {schedule.title}
                 <div className="text-xs text-main bg-[#FFF2E3] px-2 rounded-full">
-                  {getDDay(schedule.dateTime)}
+                  {schedule.dday}
                 </div>
               </span>
             </div>

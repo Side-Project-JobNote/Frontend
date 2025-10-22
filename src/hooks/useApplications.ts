@@ -52,6 +52,7 @@ export const useUpdateApplication = () => {
     mutationFn: updateApplication,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
@@ -63,6 +64,7 @@ export const useDeleteApplication = () => {
     mutationFn: deleteApplication,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
