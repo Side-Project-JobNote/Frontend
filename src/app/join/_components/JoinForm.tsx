@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import EmptyCheckCircle from "@/assets/EmptyCheckCircle.svg";
 import FilledCheckCircle from "@/assets/FilledCheckCircle.svg";
 import EyeInvisible from "@/assets/EyeInvisible.svg";
@@ -9,134 +9,74 @@ import ServiceTermsSection from "./ServiceTermsSection";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { useSignUp } from "@/hooks/useAuth";
+import { joinFormSchema } from "@/lib/schemas/authSchema";
+import { JoinFormData } from "@/lib/schemas/authSchema";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function JoinForm() {
   const router = useRouter();
   const { mutate, isPending } = useSignUp();
-
-  const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
-
-  const [name, setName] = useState("");
-
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [password2, setPassword2] = useState("");
-  const [password2Error, setPassword2Error] = useState("");
   const [isVisiblePassword, setIsVisiblePassword] = useState(false);
-
-  const [allAgree, setAllAgree] = useState(false);
-  const [firstAgree, setFirstAgree] = useState(false);
-  const [secondAgree, setSecondAgree] = useState(false);
-
   const [showServiceTerms, setShowServiceTerms] = useState(false);
   const [showPrivacyTerms, setShowPrivacyTerms] = useState(false);
 
-  // 이메일 유효성 검사
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<JoinFormData>({
+    resolver: zodResolver(joinFormSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+      nickname: "",
+      password: "",
+      password2: "",
+      firstAgree: false,
+      secondAgree: false,
+    },
+  });
+
+  const onSubmit: SubmitHandler<JoinFormData> = (data) => {
+    const { email, nickname, password } = data;
+
+    mutate(
+      { email, password, nickname },
+      {
+        onSuccess: () => {
+          alert("인증 메일을 발송했습니다. 메일함을 확인해주세요.");
+          router.replace("/login");
+        },
+        onError: (err) => {
+          const error = err as AxiosError<{ message: string }>;
+          const message = error.response?.data?.message;
+
+          switch (message) {
+            case "이미 가입된 이메일입니다.":
+              alert("이미 가입된 이메일입니다.");
+              break;
+            case "이미 사용중인 닉네임입니다.":
+              alert("이미 사용중인 닉네임입니다.");
+            default:
+              break;
+          }
+        },
+      }
+    );
   };
 
-  // 닉네임 유효성 검사
-  const validateName = (name: string) => {
-    return name.trim().length > 0;
-  };
+  const firstAgree = watch("firstAgree");
+  const secondAgree = watch("secondAgree");
+  const allAgree = firstAgree && secondAgree;
 
-  // 비밀번호 유효성 검사
-  const validatePassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\w\W]{8,20}$/;
-    return passwordRegex.test(password);
-  };
-
-  // 이메일 블러 시 에러 처리
-  const handleEmailBlur = () => {
-    if (!email) {
-      setEmailError("이메일을 입력해주세요.");
-    } else if (!validateEmail(email)) {
-      setEmailError("이메일 형식이 올바르지 않습니다.");
-    } else {
-      setEmailError("");
-    }
-  };
-
-  // 비밀번호 블러 시 에러 처리
-  const passwordBlur = () => {
-    if (!password) {
-      setPasswordError("비밀번호를 입력해주세요.");
-    } else if (!validatePassword(password)) {
-      setPasswordError("비밀번호 형식이 올바르지 않습니다.");
-    } else setPasswordError("");
-  };
-
-  // 비밀번호 일치 확인
-  const password2Blur = () => {
-    if (password !== password2) {
-      setPassword2Error("비밀번호가 일치하지 않습니다.");
-    } else {
-      setPassword2Error("");
-    }
-  };
-
-  // 전체동의 -> 개별 동의 모두 적용
   const toggleAllAgree = () => {
     const next = !allAgree;
-    setAllAgree(next);
-    setFirstAgree(next);
-    setSecondAgree(next);
+    setValue("firstAgree", next, { shouldValidate: true });
+    setValue("secondAgree", next, { shouldValidate: true });
   };
-
-  // 개별 동의 변경 시 전체 동의 자동 반영
-  useEffect(() => {
-    if (firstAgree && secondAgree) {
-      setAllAgree(true);
-    } else {
-      setAllAgree(false);
-    }
-  }, [firstAgree, secondAgree]);
-
-  // 제출 조건: 이메일/비번 유효 + 비밀번호 일치 + 필수 동의 두 개
-  const isDisabledSubmit =
-    !validateEmail(email) ||
-    !validateName(name) ||
-    !validatePassword(password) ||
-    password2Error !== "" ||
-    !firstAgree ||
-    !secondAgree ||
-    isPending;
-
-  const submitSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = {
-      email,
-      password,
-      nickname: name,
-    };
-
-    mutate(data, {
-      onSuccess: () => {
-        alert("인증 메일을 발송했습니다. 메일함을 확인해주세요.");
-        router.replace("/login");
-      },
-      onError: (err) => {
-        const error = err as AxiosError<{ message: string }>;
-        const message = error.response?.data?.message;
-
-        switch (message) {
-          case "이미 가입된 이메일입니다.":
-            alert("이미 가입된 이메일입니다.");
-            break;
-          case "이미 사용중인 닉네임입니다.":
-            alert("이미 사용중인 닉네임입니다.");
-
-          default:
-            break;
-        }
-      },
-    });
-  };
-
-  // 스타일 변수
   const inputWrapper = "flex flex-col gap-2";
   const inputStyle = "border border-[#D9D9D9] rounded-xs h-8 px-2";
   const checkBoxWrapper = "flex flex-row justify-between";
@@ -146,9 +86,7 @@ export default function JoinForm() {
   return (
     <form
       className="flex flex-col w-full gap-4 text-sm"
-      onSubmit={(e) => {
-        submitSignUp(e);
-      }}
+      onSubmit={handleSubmit(onSubmit)}
     >
       {/* 이메일 */}
       <div className={inputWrapper}>
@@ -159,11 +97,11 @@ export default function JoinForm() {
           type="text"
           id="id"
           className={inputStyle}
-          onBlur={handleEmailBlur}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
         />
-        {emailError && <span className="text-red-500">{emailError}</span>}
+        {errors.email && (
+          <span className="text-red-500">{errors.email.message}</span>
+        )}
       </div>
 
       {/* 이름 */}
@@ -176,10 +114,11 @@ export default function JoinForm() {
           id="name"
           placeholder="닉네임을 입력하세요."
           className={inputStyle}
-          onChange={(e) => {
-            setName(e.target.value.trim());
-          }}
+          {...register("nickname")}
         />
+        {errors.nickname && (
+          <span className="text-red-500">{errors.nickname.message}</span>
+        )}
       </div>
 
       {/* 비밀번호 */}
@@ -190,46 +129,35 @@ export default function JoinForm() {
         <input
           type="password"
           id="password"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
           className={inputStyle}
-          onBlur={passwordBlur}
+          {...register("password")}
         />
-        {passwordError && <span className="text-red-500">{passwordError}</span>}
+        {errors.password && (
+          <span className="text-red-500">{errors.password.message}</span>
+        )}
 
         {/* 비밀번호 확인 */}
         <div className="relative flex flex-row items-center">
           <input
+            disabled={!watch("password")}
             type={isVisiblePassword ? "text" : "password"}
             id="password2"
-            value={password2}
-            onChange={(e) => setPassword2(e.target.value)}
-            onBlur={password2Blur}
-            disabled={!validatePassword(password)}
-            className={`w-full
-                ${
-                  !validatePassword(password)
-                    ? `${inputStyle} bg-[#F5F5F5]`
-                    : inputStyle
-                }
-                `}
+            className={inputStyle + " w-full " + (!watch("password") ? "bg-[#F5F5F5]" : "")}
+            {...register("password2")}
           />
           <button
             type="button"
             className="absolute right-2"
-            onClick={() => {
-              setIsVisiblePassword((prev) => !prev);
-            }}
+            onClick={() => setIsVisiblePassword((prev) => !prev)}
           >
             <EyeInvisible />
           </button>
         </div>
-        {password2Error && (
-          <span className="text-red-500">{password2Error}</span>
+        {errors.password2 && (
+          <span className="text-red-500">{errors.password2.message}</span>
         )}
       </div>
 
-      {/* 전체동의 */}
       <div className={checkBox + " mt-4"}>
         <label
           htmlFor="all-agree"
@@ -245,18 +173,20 @@ export default function JoinForm() {
       {/* (필수) 서비스 이용약관 동의 */}
       <div>
         <div className={checkBoxWrapper}>
-          {/* 체크박스 + 텍스트를 한 라벨로 묶음 */}
           <label
             className={`${checkBox} ${checkButton}`}
-            onClick={() => setFirstAgree((prev) => !prev)}
           >
             {firstAgree ? <FilledCheckCircle /> : <EmptyCheckCircle />}
             <span>
               <span className="text-[#FF9016]">(필수)</span> 서비스 이용 약관
               동의
             </span>
+            <input
+              type="checkbox"
+              {...register("firstAgree")}
+              className="hidden"
+            />
           </label>
-
           <button
             type="button"
             onClick={() => setShowServiceTerms((prev) => !prev)}
@@ -265,9 +195,11 @@ export default function JoinForm() {
             {showServiceTerms ? "접기" : "보기"}
           </button>
         </div>
-
+        {errors.firstAgree && (
+          <span className="text-red-500">{errors.firstAgree.message}</span>
+        )}
         <div
-          className={`overflow-scroll transition-all duration-300 ease-in-out custom-scrollbar rounded-sm ${
+          className={`overflow-y-scroll transition-all duration-300 ease-in-out custom-scrollbar rounded-sm ${
             showServiceTerms
               ? "max-h-[22.5rem] opacity-100 mt-2"
               : "max-h-0 opacity-0"
@@ -282,15 +214,18 @@ export default function JoinForm() {
         <div className={checkBoxWrapper}>
           <label
             className={`${checkBox} ${checkButton}`}
-            onClick={() => setSecondAgree((prev) => !prev)}
           >
             {secondAgree ? <FilledCheckCircle /> : <EmptyCheckCircle />}
             <span>
               <span className="text-[#FF9016]">(필수)</span> 개인정보 수집 및
               이용 동의
             </span>
+            <input
+              type="checkbox"
+              {...register("secondAgree")}
+              className="hidden"
+            />
           </label>
-
           <button
             type="button"
             onClick={() => setShowPrivacyTerms((prev) => !prev)}
@@ -299,7 +234,9 @@ export default function JoinForm() {
             {showPrivacyTerms ? "접기" : "보기"}
           </button>
         </div>
-
+        {errors.secondAgree && (
+          <span className="text-red-500">{errors.secondAgree.message}</span>
+        )}
         <div
           className={`overflow-y-scroll transition-all duration-300 ease-in-out custom-scrollbar rounded-sm ${
             showPrivacyTerms
@@ -311,17 +248,16 @@ export default function JoinForm() {
         </div>
       </div>
 
-      {/* 제출 버튼 */}
       <button
         type="submit"
-        disabled={isDisabledSubmit}
+        disabled={!isValid || isPending}
         className={`w-full h-8 rounded-xs shadow-[0_2px_0_rgba(0,0,0,0.043)] ${
-          isDisabledSubmit
-            ? "border border-[#D9D9D9]"
+          !isValid || isPending
+            ? "border border-[#D9D9D9] bg-gray-200 cursor-not-allowed"
             : "bg-[#FF9016] text-white"
         }`}
       >
-        회원가입
+        {isPending ? "가입 요청 중..." : "회원가입"}
       </button>
     </form>
   );

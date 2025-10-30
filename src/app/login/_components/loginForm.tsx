@@ -6,49 +6,29 @@ import Link from "next/link";
 import { AxiosError } from "axios";
 import { login } from "@/lib/auth";
 import EyeInvisible from "@/assets/EyeInvisible.svg";
+import { LoginFormData, loginFormSchema } from "@/lib/schemas/authSchema";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function LoginForm() {
   const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
   const [isVisiblePassword, setIsVisiblePassword] = useState(false);
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginFormSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const validatePassword = (password: string) => {
-    // 규칙: 8~20자, 영문 대소문자, 숫자 포함, 특수문자는 option
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\w\W]{8,20}$/;
-    return passwordRegex.test(password);
-  };
-
-  const handleEmailBlur = () => {
-    if (!email) {
-      setEmailError("이메일을 입력해주세요.");
-    } else if (!validateEmail(email)) {
-      setEmailError("이메일 형식이 올바르지 않습니다.");
-    } else {
-      setEmailError("");
-    }
-  };
-
-  const passwordBlur = () => {
-    if (!password) {
-      setPasswordError("비밀번호를 입력해주세요.");
-    } else if (!validatePassword(password)) {
-      setPasswordError("비밀번호 형식이 올바르지 않습니다.");
-    } else setPasswordError("");
-  };
-
-  const isDisabled = !email || !validateEmail(email) || !password;
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const onSubmit: SubmitHandler<LoginFormData> = (data) => {
+    const { email, password } = data;
     login(email, password)
       .then(() => {
         router.replace("/dashboard");
@@ -68,7 +48,7 @@ export default function LoginForm() {
     <form
       id="login-form"
       className="flex flex-col gap-2"
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
     >
       <label htmlFor="id" className="text-[#BDBDBD] text-xs">
         id
@@ -76,18 +56,12 @@ export default function LoginForm() {
       <input
         id="id"
         type="text"
-        value={email}
-        onChange={(e) => {
-          setEmail(e.target.value.trim());
-          setEmailError("");
-        }}
-        onBlur={handleEmailBlur}
+        {...register("email")}
         className={`w-full h-8 border border-[#D9D9D9] rounded-sm text-sm text-[#424242] pl-3 ${
-          emailError ? "border-[#FA4343] shadow-[0_0_0_2px_#fa434333]" : ""
+          errors.email ? "border-[#FA4343] shadow-[0_0_0_2px_#fa434333]" : ""
         }`}
-        required
       />
-      <p className="text-xs text-[#FA4343]">{emailError ? emailError : ""}</p>
+      {errors.email && <p className="text-xs text-[#FA4343]">{errors.email.message}</p>}
 
       <label htmlFor="password" className="text-[#BDBDBD] text-xs">
         password
@@ -96,16 +70,10 @@ export default function LoginForm() {
         <input
           id="password"
           type={isVisiblePassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value.trim());
-            setPasswordError("");
-          }}
-          onBlur={passwordBlur}
+          {...register("password")}
           className={`w-full h-8 border border-[#D9D9D9] rounded-sm text-sm text-[#424242] pl-3 pr-6 ${
-            passwordError ? "border-[#FA4343] shadow-[0_0_0_2px_#fa434333]" : ""
+            errors.password ? "border-[#FA4343] shadow-[0_0_0_2px_#fa434333]" : ""
           }`}
-          required
         />
         <button
           type="button"
@@ -120,7 +88,7 @@ export default function LoginForm() {
 
       <div className="flex flex-row justify-between mb-4">
         <span className="text-xs text-[#FA4343]">
-          {passwordError ? passwordError : ""}
+          {errors.password ? errors.password.message : ""}
         </span>
 
         <Link href="/login/find-password" className="text-[8px] text-[#616161]">
@@ -131,9 +99,9 @@ export default function LoginForm() {
       <button
         type="submit"
         className={`w-full h-8   rounded-xs shadow-[0_2px_0_rgba(0,0,0,0.043)] ${
-          isDisabled ? "border border-[#D9D9D9]" : "bg-[#FF9016] text-white"
+          !isValid ? "border border-[#D9D9D9]" : "bg-[#FF9016] text-white"
         }`}
-        disabled={isDisabled}
+        disabled={!isValid}
       >
         login
       </button>
