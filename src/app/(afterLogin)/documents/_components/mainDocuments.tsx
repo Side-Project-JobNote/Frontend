@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { formatDate } from "date-fns";
 import { useCreateDocument, useDocuments } from "@/hooks/useDocuments";
 import VersionBadge from "./versionBadge";
@@ -16,7 +16,7 @@ import UploadFileButton from "./uploadFileButton";
 export default function MainDocuments() {
   const [page, setPage] = useState(0);
   const { data, error, isLoading } = useDocuments(page);
-  const documents = data?.data?.data.content ?? [];
+  const documents = useMemo(() => data?.data.data.content || [], [data?.data.data.content]);
   const router = useRouter();
 
   const [isAdding, setIsAdding] = useState(false);

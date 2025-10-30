@@ -95,7 +95,7 @@ export default function ApplicationsPage() {
         alert("선택된 항목이 모두 삭제되었습니다.");
         setSelectedIds([]);
         refetch();
-      } catch (_error) {
+      } catch {
         alert("일부 항목 삭제에 실패했습니다. 페이지를 새로고침합니다.");
         refetch();
       }

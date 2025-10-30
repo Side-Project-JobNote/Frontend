@@ -1,10 +1,7 @@
 "use client";
 
-import PlusCircleIcon from "@/assets/PlusCircle.svg";
 import Divider from "../../_components/divider";
 import DownloadIcon from "@/assets/Download.svg";
-import UploadIcon from "@/assets/Upload.svg";
-import Link from "next/link";
 import { useDocumentStore } from "@/store/documents/documentStore";
 import { ApplicationStatus, Document } from "@/type/applicationType";
 import { DocumentType } from "@/type/documentType";
@@ -75,8 +72,7 @@ export default function DocumentDescription({
 
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-      console.error("Download error:", error);
+    } catch {
       alert("파일 다운로드 중 오류가 발생했습니다.");
     }
   };
