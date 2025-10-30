@@ -12,7 +12,7 @@ import Divider from "../documents/_components/divider";
 import LoadingSpinner from "@/app/_components/loadingSpinner";
 import SearchIcon from "@/assets/Search.svg";
 import PlusIcon from "@/assets/Plus.svg";
-import { CompanyApplicationWithId, Schedule } from "@/type/applicationType";
+import { ApplicationStatus, CompanyApplicationWithId, Schedule } from "@/type/applicationType";
 import PencilSimpleIcon from "@/assets/PencilSimple.svg";
 import TrashSimpleIcon from "@/assets/TrashSimple.svg";
 
@@ -95,7 +95,7 @@ export default function ApplicationsPage() {
         alert("선택된 항목이 모두 삭제되었습니다.");
         setSelectedIds([]);
         refetch();
-      } catch (error) {
+      } catch {
         alert("일부 항목 삭제에 실패했습니다. 페이지를 새로고침합니다.");
         refetch();
       }
@@ -115,26 +115,24 @@ export default function ApplicationsPage() {
 
   const handleStatusChange = (
     app: CompanyApplicationWithId,
-    status: string
+    newStatus: string
   ) => {
-    const changedApp = { ...app, status };
-    updateMutate(
-      { applicationId: app.id, changedApplication: changedApp },
-      {
-        onError: () => {
-          alert("오류가 발생하였습니다. 잠시 후 시도해주세요.");
-        },
-      }
-    );
+    const queryKey = ["applications", page, searchQuery];
+    updateMutate({
+      applicationId: app.id,
+      changedApplication: { ...app, status: newStatus as ApplicationStatus },
+      queryKey: queryKey,
+      newStatus: newStatus,
+    });
   };
 
-  const formatUrl = (url?: string) => {
-    if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    return `https://${url}`;
-  };
+  // const formatUrl = (url?: string) => {
+  //   if (!url) return "";
+  //   if (url.startsWith("http://") || url.startsWith("https://")) {
+  //     return url;
+  //   }
+  //   return `https://${url}`;
+  // };
 
   return (
     <>
