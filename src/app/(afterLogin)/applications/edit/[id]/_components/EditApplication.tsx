@@ -13,6 +13,7 @@ import {
 } from "@/hooks/useApplications";
 import {
   ApplicationStatus,
+  CompanyApplication,
   CompanyApplicationWithId,
   ScheduleStatus,
   typeLabels,
@@ -147,7 +148,7 @@ export default function EditApplicationsPage({ id }: { id: number }) {
 
     try {
       await mutateAsync({
-        changedApplication: changedApplication,
+        changedApplication: changedApplication as CompanyApplication,
         applicationId: id,
       });
 
