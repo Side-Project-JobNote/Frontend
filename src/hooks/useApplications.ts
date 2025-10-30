@@ -7,7 +7,7 @@ import {
   updateApplication,
   uploadApplications,
 } from "@/lib/applications";
-import { ApplicationStatus, CompanyApplication, CompanyApplicationWithId } from "@/type/applicationType";
+import { CompanyApplication, CompanyApplicationWithId } from "@/type/applicationType";
 
 // 업로드
 export const useUploadApplications = () => {
@@ -18,8 +18,8 @@ export const useUploadApplications = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
     },
-    onError: (err) => {
-      console.error("지원서 업로드 실패:", err);
+    onError: () => {
+      console.error("지원서 업로드 실패:");
     },
   });
 };
@@ -48,81 +48,104 @@ export const useFetchApplication = (applicationId: number) => {
 
 type UpdateApplicationVariables = {
   applicationId: number;
-  changedApplication: CompanyApplication; 
-  queryKey?: (string | number)[]; 
+  changedApplication: CompanyApplication;
+  queryKey?: (string | number)[];
   newStatus?: string;
 };
+
+interface UpdateContext {
+  previousListData?: {
+    data: { content: CompanyApplicationWithId[] };
+  };
+  previousSingleData?: CompanyApplicationWithId;
+  queryKey?: (string | number)[];
+  singleAppQueryKey: (string | number)[];
+}
 
 // 상태 업데이트 훅
 export const useUpdateApplication = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (variables: UpdateApplicationVariables) => {
-      const { applicationId, changedApplication } = variables;
-      return updateApplication({ applicationId, changedApplication });
-    },
+  return useMutation<
+    void,
+    Error,
+    UpdateApplicationVariables,
+    UpdateContext
+  >({
+    mutationFn: ({ applicationId, changedApplication }) =>
+      updateApplication({ applicationId, changedApplication }),
 
-    onMutate: async (variables: UpdateApplicationVariables) => {
-      const { applicationId, queryKey, newStatus } = variables;
-      
-      const context: { 
-        previousListData?: unknown; 
-        queryKey?: (string | number)[];
-        previousSingleData?: unknown;
-        singleAppQueryKey: (string | number)[];
-      } = {
-        singleAppQueryKey: ["application", applicationId]
+    onMutate: async (variables) => {
+      const { applicationId, queryKey, newStatus, changedApplication } = variables;
+
+      const context: UpdateContext = {
+        singleAppQueryKey: ["application", applicationId],
       };
 
       await queryClient.cancelQueries({ queryKey: context.singleAppQueryKey });
-      context.previousSingleData = queryClient.getQueryData(context.singleAppQueryKey);
-      queryClient.setQueryData(context.singleAppQueryKey, (oldData: any) => {
-         if (!oldData) return oldData;
-         return { 
-           ...oldData, 
-           data: { ...oldData.data, data: variables.changedApplication }
-         };
-      });
+      const previousSingle = queryClient.getQueryData<CompanyApplicationWithId>(
+        context.singleAppQueryKey
+      );
+      context.previousSingleData = previousSingle;
+
+      if (previousSingle) {
+        queryClient.setQueryData<CompanyApplicationWithId>(
+          context.singleAppQueryKey,
+          {
+            ...previousSingle,
+            ...changedApplication,
+          }
+        );
+      }
 
       if (queryKey && newStatus) {
         await queryClient.cancelQueries({ queryKey });
-        context.previousListData = queryClient.getQueryData(queryKey);
+        const previousList = queryClient.getQueryData<{
+          data: { content: CompanyApplicationWithId[] };
+        }>(queryKey);
+        context.previousListData = previousList;
         context.queryKey = queryKey;
 
-        queryClient.setQueryData(queryKey, (oldData: any) => {
-          if (!oldData) return oldData;
-          const updatedContent = oldData.data.content.map(
-            (item: CompanyApplicationWithId) =>
-              item.id === applicationId ? { ...item, status: newStatus } : item
+        if (previousList?.data?.content) {
+          const updatedContent = previousList.data.content.map((item) =>
+            item.id === applicationId ? { ...item, status: newStatus } : item
           );
-          return { ...oldData, data: { ...oldData.data, content: updatedContent }};
-        });
+          queryClient.setQueryData(queryKey, {
+            ...previousList,
+            data: { ...previousList.data, content: updatedContent },
+          });
+        }
       }
-      
+
       return context;
     },
 
-    onError: (err, variables, context: any) => {
+    onError: (_err, _variables, context) => {
       alert("오류가 발생하였습니다.");
+
       if (context?.previousSingleData) {
-        queryClient.setQueryData(context.singleAppQueryKey, context.previousSingleData);
+        queryClient.setQueryData(
+          context.singleAppQueryKey,
+          context.previousSingleData
+        );
       }
+
       if (context?.previousListData && context?.queryKey) {
         queryClient.setQueryData(context.queryKey, context.previousListData);
       }
     },
 
-    onSettled: (data, error, variables, context: any) => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
-      queryClient.invalidateQueries({ queryKey: ["application", variables.applicationId] });
+      queryClient.invalidateQueries({
+        queryKey: ["application", variables.applicationId],
+      });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 };
 
-// 삭제
 export const useDeleteApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
