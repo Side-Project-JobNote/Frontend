@@ -64,7 +64,7 @@ export default function ProtectedPage({ children }: Props) {
     };
 
     initializeAuth();
-  }, []);
+  }, [isInitialized, router, searchParams, setInitialized, token, checkAuth]);
 
   if (!isInitialized) return null;
 
